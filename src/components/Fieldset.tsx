@@ -20,7 +20,7 @@ type FieldsetProps = {
 export function Fieldset({ selectedEmpresas, selectedMunicipios }: FieldsetProps) {
 
   return (
-    <fieldset className="border-stone-600 border-y flex gap-16 py-2 my-6">
+    <fieldset className="border-stone-600 border-y flex gap-16 py-2 px-3 my-6">
       <div className="w-fit">
         <header className="flex justify-between items-center gap-2">
           <strong>Empresas ({selectedEmpresas.length}):</strong>
@@ -47,7 +47,19 @@ export function Fieldset({ selectedEmpresas, selectedMunicipios }: FieldsetProps
             <div key={m.codigo} className="bg-stone-900 relative z-10 w-fit rounded-full py-px border dark:border-stone-600 px-3">{m.nome}</div>
           ))}
         </div>
+      </div>
 
+      <div className="ml-auto p-2 rounded border dark:border-stone-700/75 dark:bg-stone-700/50">
+        <header className="flex mb-2 justify-between items-center gap-6">
+          <strong>Relatório</strong>
+          <Button size='sm'>Gerar relatório</Button>
+        </header>
+        <fieldset>
+          <label htmlFor="">
+            <small className="font-semibold text-stone-400">Linhas por arquivo</small>
+            <Input type='number' max={100_000} />
+          </label>
+        </fieldset>
       </div>
     </fieldset>
   )

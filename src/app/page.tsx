@@ -34,10 +34,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
 
   return (
     <div className="">
-      <header className="border-b border-stone-600 mb-4">
-        <h1 className="text-xl font-mono text-stone-400">Hello, world!</h1>
-      </header>
-
       <Fieldset selectedEmpresas={selectedEmpresas} selectedMunicipios={selectedMunicipios} />
 
       <table>
@@ -45,6 +41,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
           <tr className="border-b border-b-stone-700 *:px-3 *:hover:bg-stone-700 *:text-start">
             <th>Nome</th>
             <th>Data de nascimento</th>
+            <th>ddd</th>
+            <th>Telefone</th>
+            <th>Email</th>
+            <th>Data Admissão</th>
+            <th>Data Demissão</th>
             <th>Empresa</th>
             <th>Município funcinário</th>
             <th>Município empresa</th>
@@ -57,6 +58,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
               <tr key={funcionario.cpf} className="*:px-3 even:bg-stone-700/50">
                 <td>{funcionario.nome}</td>
                 <td>{funcionario.dataNascimento}</td>
+                <td>{funcionario.dddTelefone}</td>
+                <td>{funcionario.telefone}</td>
+                <td>{funcionario.email}</td>
+                <td>{funcionario.dataAdmissao}</td>
+                <td>{funcionario.dataDesligamento}</td>
                 <td>
                   <Link href={{ query: { ...sp, empresa: funcionario.empresa?.cnpj } }}>
                     {funcionario.empresa?.razaoSocial}
