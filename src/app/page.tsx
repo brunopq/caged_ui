@@ -6,7 +6,8 @@ type SearchParams = Record<string, string | string[] | undefined>;
 
 export default async function Home({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const sp = await searchParams
-  const municipio = Number(sp['municipio']) || undefined
+  const municipio = (sp['municipio']) || undefined
+  const municipios = typeof municipio === 'string' ? [Number(municipio)] : municipio?.map(Number)
   const empresa = (sp['empresa']) || undefined
   const empresas = typeof empresa === 'string' ? [empresa] : empresa
 
@@ -16,7 +17,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
     limit: 100,
     with: { empresa: { with: { municipio: true } }, municipio: true },
     where: (f, { eq, and, or }) => (empresa || municipio) ? and(
-      municipio ? eq(f.municipio, municipio) : undefined,
+      municipios ? or(...municipios.map(m => eq(f.municipio, m))) : undefined,
       empresas
         ? or(...empresas.map(e => eq(f.empresa, e)))
         : undefined,
@@ -27,13 +28,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
     where: (e, { eq, or }) => or(...empresas.map((cnpj) => eq(e.cnpj, cnpj)))
   }) : []
 
+  const selectedMunicipios = municipios ? await db.query.municipios.findMany({
+    where: (m, { eq, or }) => or(...municipios.map((codigo) => eq(m.codigo, codigo)))
+  }) : []
+
   return (
     <div className="">
       <header className="border-b border-stone-600 mb-4">
         <h1 className="text-xl font-mono text-stone-400">Hello, world!</h1>
       </header>
 
-      <Fieldset selectedEmpresas={selectedEmpresas} />
+      <Fieldset selectedEmpresas={selectedEmpresas} selectedMunicipios={selectedMunicipios} />
 
       <table>
         <thead>

@@ -8,6 +8,9 @@ export const municipios = pgTable("municipios", {
 	nome: text(),
 });
 
+const municipioSchema = createSelectSchema(municipios)
+export type Municipio = z.infer<typeof municipioSchema>
+
 export const empresas = pgTable("empresas", {
 	cnpj: text().primaryKey().notNull(),
 	razaoSocial: text("razao_social"),
