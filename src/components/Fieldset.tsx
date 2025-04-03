@@ -57,7 +57,7 @@ export function Fieldset({ selectedEmpresas, selectedMunicipios }: FieldsetProps
         <fieldset>
           <label htmlFor="">
             <small className="font-semibold text-stone-400">Linhas por arquivo</small>
-            <Input type='number' max={100_000} />
+            <Input type='number' min={100} defaultValue={500} max={100_000} />
           </label>
         </fieldset>
       </div>
