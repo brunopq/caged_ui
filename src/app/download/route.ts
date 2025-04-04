@@ -1,19 +1,33 @@
 import { db } from "@/db"
+import { funcionarios, empresas as eTable, municipios as mTable } from "@/db/schema"
 import { autofitColumns, excelCurrency } from "@/utils/XLSXUtils"
+import { and, eq, or } from "drizzle-orm"
 import { NextRequest } from "next/server"
 import XLSX from "xlsx"
 
 export async function GET(request: NextRequest) {
   const sp = request.nextUrl.searchParams
 
-  console.log(sp)
+  console.log("building relatorio")
 
-  const municipios = sp.get('municipio')?.split(',').map(Number) || undefined
-  const empresas = sp.get('empresa')?.split(',') || undefined
+  const municipios = sp.get('municipio')?.split(',').map(Number).filter(Boolean) || undefined
+  const empresas = sp.get('empresa')?.split(',').filter(Boolean) || undefined
   const limit = Number(sp.get('limit')) || 500
   const page = Number(sp.get('page')) || 0
 
-  const data = await db.query.funcionarios.findMany({
+  console.log({municipios, empresas, limit, page})
+
+  const data = await db.select().from(funcionarios).where(
+    and(
+      empresas?.length ? or(...empresas.map(e => eq(funcionarios.empresa, e))) : undefined,
+      municipios?.length ? or(...municipios.map(m => eq(funcionarios.municipio, m))) : undefined,
+    )
+  )
+  .leftJoin(eTable, eq(funcionarios.empresa, eTable.cnpj))
+  .leftJoin(mTable, eq(funcionarios.municipio, mTable.codigo))
+  .limit(limit).offset(limit*page)
+
+  const data2 = /* await db.query.funcionarios.findMany({
     limit: limit,
     offset: limit*page,
     where: (f, { eq, and, or }) => (empresas || municipios) ? and(
@@ -26,9 +40,9 @@ export async function GET(request: NextRequest) {
       empresa: { with: { municipio: true } },
       municipio: true
     }
-  })
-
-  console.log({ empresas, municipios, limit, page })
+  }) */
+  
+  console.log(data)
 
   const wb = XLSX.utils.book_new()
   const ws = XLSX.utils.sheet_new()
@@ -46,12 +60,19 @@ export async function GET(request: NextRequest) {
     ws,
     [
       [
-        "Nome",
-        "Razão social",
-        "Data demissão",
-        "Data admissão",
-        "DDD",
-        "Telefone",
+          "Nome",
+          "Cpf",
+          "Razão Social",
+          "CNPJ",
+          "DDD",
+          "Telefone",
+          "Email",
+          "Município",
+          "Data Desligamento",
+          "Data Admissão",
+          "Data de Nascimento",
+          "Cbo",
+          "Pis",
       ],
     ],
     {
@@ -65,12 +86,19 @@ export async function GET(request: NextRequest) {
       ws,
       [
         [
-          d.nome,
-          d.empresa?.razaoSocial,
-          d.dataDesligamento,
-          d.dataAdmissao,
-          d.dddTelefone,
-          d.telefone,
+          d.funcionarios.nome,
+          d.funcionarios.cpf,
+          d.empresas?.razaoSocial,
+          d.empresas?.cnpj,
+          d.funcionarios.dddTelefone,
+          d.funcionarios.telefone,
+          d.funcionarios.email,
+          d.funcionarios.municipio,
+          d.funcionarios.dataDesligamento,
+          d.funcionarios.dataAdmissao,
+          d.funcionarios.dataNascimento,
+          d.funcionarios.cbo,
+          d.funcionarios.pis,
         ],
       ],
       {
@@ -80,8 +108,7 @@ export async function GET(request: NextRequest) {
     row++
   }
 
-  // start at 2nd row because the header is merged
-  autofitColumns(ws, XLSX.utils.decode_range("A2:Z1000"))
+  autofitColumns(ws, XLSX.utils.decode_range("A1:Z1000"))
 
   XLSX.utils.book_append_sheet(wb, ws, "Relatório")
   const fileData = XLSX.write(wb, {
@@ -89,23 +116,6 @@ export async function GET(request: NextRequest) {
     type: "buffer",
     cellStyles: true,
   })
-
-  // const count = await db.$count(funcionarios, and(
-  //   municipios ? or(...municipios.map(m => eq(funcionarios.municipio, m))) : undefined,
-  //   empresas
-  //     ? or(...empresas.map(e => eq(funcionarios.empresa, e)))
-  //     : undefined,
-  // ))
-
-  // const selectedEmpresas = empresas ? await db.query.empresas.findMany({
-  //   where: (e, { eq, or }) => or(...empresas.map((cnpj) => eq(e.cnpj, cnpj))),
-  //   with: { municipio: true }
-  // }) : []
-
-  // const selectedMunicipios = municipios ? await db.query.municipios.findMany({
-  //   where: (m, { eq, or }) => or(...municipios.map((codigo) => eq(m.codigo, codigo)))
-  // }) : []
-
 
 
   return new Response(fileData, {headers: {

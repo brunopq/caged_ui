@@ -49,18 +49,7 @@ export function Fieldset({ selectedEmpresas, selectedMunicipios }: FieldsetProps
         </div>
       </div>
 
-      <div className="ml-auto p-2 rounded border dark:border-stone-700/75 dark:bg-stone-700/50">
-        <header className="flex mb-2 justify-between items-center gap-6">
-          <strong>Relatório</strong>
-          <Button size='sm'>Gerar relatório</Button>
-        </header>
-        <fieldset>
-          <label htmlFor="">
-            <small className="font-semibold text-stone-400">Linhas por arquivo</small>
-            <Input type='number' min={100} defaultValue={500} max={100_000} />
-          </label>
-        </fieldset>
-      </div>
+      <RelatorioForm cnpjs={selectedEmpresas.map(e => e.cnpj)} codigos={selectedMunicipios.map(e => e.codigo)} />
     </fieldset>
   )
 }
@@ -224,5 +213,35 @@ function MunicipiosDialog({ initialMunicipios }: MunicipiosDialogProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+type RelatorioFormProps = {
+  cnpjs: string[],
+  codigos: number[]
+}
+
+function RelatorioForm({ cnpjs, codigos }: RelatorioFormProps) {
+  return (
+    <div className="ml-auto p-2 rounded border dark:border-stone-700/75 dark:bg-stone-700/50">
+      <header className="flex mb-2 justify-between items-center gap-6">
+        <strong>Relatório</strong>
+        <Button asChild size='sm'>
+          <Link href={{
+            pathname: 'relatorio',
+            query: {
+              empresa: cnpjs,
+              municipio: codigos
+            }
+          }}>Gerar relatório</Link>
+        </Button>
+      </header>
+      <fieldset>
+        <label htmlFor="">
+          <small className="font-semibold text-stone-400">Linhas por arquivo</small>
+          <Input type='number' min={100} defaultValue={500} max={100_000} />
+        </label>
+      </fieldset>
+    </div>
   )
 }
